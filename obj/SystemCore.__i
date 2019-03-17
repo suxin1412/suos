@@ -1,0 +1,1 @@
+"os\SystemCore.c" BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\SystemCore.lst) TABS (2) OBJECT(.\obj\SystemCore.obj)

@@ -1,0 +1,40 @@
+C51 COMPILER V9.52.0.0   MAIN                                                              03/17/2019 22:08:51 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\obj\main.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE user\main.c BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\main.lst)
+                    - TABS(2) OBJECT(.\obj\main.obj)
+
+line level    source
+
+   1          #include "OS.h"
+   2          #include "Snake.h"
+   3          #include "handle.h"
+   4          #include "indicator.h"
+   5          #include "Pellet.h"
+   6           //定义信号量 实现屏幕的互斥共享 数量1
+   7          Semaphore screen = 1;
+   8          uint8_t signal = 0;
+   9          //此函数内仅可进行设备初始化和创建进程，禁止添加其他语句
+  10          void main_t()
+  11          {
+  12   1        HandleInit();     //初始化手柄
+  13   1        IndicatorInit();  //初始化屏幕
+  14   1        Create_Process(UserProcess_Snake);  //创建贪吃蛇进程
+  15   1        Create_Process(UserProcess_Pellet); //创建弹球进程
+  16   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     24    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,1 @@
+"os\OS_kernel.asm" SET (SMALL) DEBUG PRINT(.\OS_kernel.lst) OBJECT(.\obj\OS_kernel.obj) EP

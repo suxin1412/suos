@@ -1,0 +1,283 @@
+C51 COMPILER V9.52.0.0   SNAKE                                                             03/17/2019 22:08:52 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE SNAKE
+OBJECT MODULE PLACED IN .\obj\Snake.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE user\Snake.c BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\Snake.ls
+                    -t) TABS(2) OBJECT(.\obj\Snake.obj)
+
+line level    source
+
+   1          #include <OS.h>
+   2          #include <Snake.h>
+   3          #include <stdlib.h>
+   4          #include <handle.h>
+   5          #include "indicator.h"
+   6          /*
+   7          * map:  20*20
+   8          * size: 210*210
+   9          */
+  10          #define SnakeMaxSize 200
+  11          uint8_t food2str[4];
+  12          
+  13          enum DIR{UP=1,DOWN,LEFT,RIGHT};
+  14          
+  15          struct PointType{
+  16            uint8_t x;
+  17            uint8_t y;
+  18          };
+  19          
+  20          
+  21          struct SnakeType{
+  22            struct PointType body[SnakeMaxSize];
+  23            enum DIR Direction;
+  24            uint8_t SnakeHead;  //蛇头
+  25            uint8_t SnakeTail;  //蛇尾后面的一个空格
+  26            uint8_t SnakeSize;
+  27          };
+  28          
+  29          sbit HandleSwitch = P1^3; //开始键
+  30          enum{GameReady = 1,GameLoading,Gameing,GameOver} GameStatus = GameReady;  //游戏状态
+  31          struct PointType food;  //食物
+  32          
+  33          /*初始化蛇*/
+  34          void SnakeInit(struct SnakeType *Snake)
+  35          {
+  36   1        Snake->SnakeHead = 3;
+  37   1        Snake->SnakeTail = 1;
+  38   1        Snake->Direction = RIGHT;
+  39   1        Snake->body[1].x = 3;
+  40   1        Snake->body[2].x = 4;
+  41   1        Snake->body[3].x = 5;
+  42   1        Snake->body[1].y = 10;
+  43   1        Snake->body[2].y = 10;
+  44   1        Snake->body[3].y = 10;
+  45   1        Snake->SnakeSize = 3;
+  46   1      }
+  47          
+  48          /*随机获取食物位置，伪随机数*/
+  49          void GetFoodRandom(uint8_t x,uint8_t y)
+  50          {
+  51   1        food.x = (x*3+17)%20;
+  52   1        food.y = (y*3+17)%20;
+  53   1      }
+  54          
+C51 COMPILER V9.52.0.0   SNAKE                                                             03/17/2019 22:08:52 PAGE 2   
+
+  55          /*三位数转换为字符串*/
+  56          uint8_t* Number2String(uint16_t n)
+  57          {
+  58   1        food2str[0] = n/100 + '0';
+  59   1        food2str[1] = (n%100)/10 + '0';
+  60   1        food2str[2] = n%10 + '0';
+  61   1        food2str[3] = 0;
+  62   1        return food2str;
+  63   1      }
+  64          
+  65          /*显示食物*/
+  66          void DisplayFood()
+  67          {
+  68   1        DisplaySendString("cirs ");
+  69   1        DisplaySendString(Number2String(food.x*10+5));
+  70   1        DisplaySendString(",");
+  71   1        DisplaySendString(Number2String(food.y*10+5));
+  72   1        DisplaySendString(",4,YELLOW");
+  73   1        DisplaySendEnd();
+  74   1      }
+  75          
+  76          /*显示分数*/
+  77          void DisplayScore(uint8_t score)
+  78          {
+  79   1        DisplaySendString("t0.txt=\" Score:");
+  80   1        DisplaySendString(Number2String(score));
+  81   1        DisplaySendString("\"");
+  82   1        DisplaySendEnd();
+  83   1      }
+  84          
+  85          
+  86          /*画蛇的点*/
+  87          void DisplaySnakeDot(uint8_t x,uint8_t y,uint8_t color)
+  88          {
+  89   1        DisplaySendString("fill ");
+  90   1        DisplaySendString(Number2String(x*10));
+  91   1        DisplaySendString(",");
+  92   1        DisplaySendString(Number2String(y*10));
+  93   1        DisplaySendString(",10,10,");
+  94   1        switch(color)
+  95   1        {
+  96   2          case 0: DisplaySendString("GREEN");break;
+  97   2          case 1: DisplaySendString("BROWN");break;
+  98   2          case 2: DisplaySendString("BLACK");break;
+  99   2        }
+ 100   1        DisplaySendEnd();
+ 101   1      }
+ 102          
+ 103          /*  检查生成的食物位置是否合法：不能生成在蛇的身上  */
+ 104          /*  return  0-合法 1-非法 */
+ 105          uint8_t CheckFood(struct SnakeType *Snake)
+ 106          {
+ 107   1        uint8_t i=Snake->SnakeTail;
+ 108   1        if (Snake->SnakeTail > Snake->SnakeHead) for(;(i>=Snake->SnakeTail&&i<SnakeMaxSize)||(i<Snake->SnakeHead)
+             -;)
+ 109   1        {
+ 110   2          if ((food.x==Snake->body[i].x)&&(food.y==Snake->body[i].y)) return 1;
+ 111   2          i=(i+1)%SnakeMaxSize;
+ 112   2        }else for (;i<Snake->SnakeHead;)
+ 113   1        {
+ 114   2          if ((food.x==Snake->body[i].x)&&(food.y==Snake->body[i].y)) return 1;
+ 115   2          i++;
+C51 COMPILER V9.52.0.0   SNAKE                                                             03/17/2019 22:08:52 PAGE 3   
+
+ 116   2        }
+ 117   1        return 0;
+ 118   1      }
+ 119          
+ 120          /*判断蛇是否吃到了自己*/
+ 121          uint8_t isEatSelf(struct SnakeType *Snake)
+ 122          {
+ 123   1        uint8_t i=Snake->SnakeTail;
+ 124   1        if (Snake->SnakeTail>Snake->SnakeHead) for(;(i>=Snake->SnakeTail&&i<SnakeMaxSize)||(i<Snake->SnakeHead);)
+ 125   1        {
+ 126   2          if ((Snake->body[Snake->SnakeHead].x==Snake->body[i].x)&&(Snake->body[Snake->SnakeHead].y==Snake->body[i
+             -].y)) return 1;
+ 127   2          i=(i+1)%SnakeMaxSize;
+ 128   2        }else for (;i<Snake->SnakeHead;)
+ 129   1        {
+ 130   2          if ((Snake->body[Snake->SnakeHead].x==Snake->body[i].x)&&(Snake->body[Snake->SnakeHead].y==Snake->body[i
+             -].y)) return 1;
+ 131   2          i++;
+ 132   2        }
+ 133   1        return 0;
+ 134   1      }
+ 135          
+ 136          /*获取手柄的方向*/
+ 137          enum DIR GetHandleDIR(enum DIR old)
+ 138          {
+ 139   1        uint8_t y=HandleReadX();
+ 140   1        uint8_t x=HandleReadY();
+ 141   1        if (x==0xff) return RIGHT;
+ 142   1        if (x==0x00) return LEFT;
+ 143   1        if (y==0xff) return DOWN;
+ 144   1        if (y==0x00) return UP;
+ 145   1        return old;
+ 146   1      }
+ 147          
+ 148          void UserProcess_Snake()
+ 149          {
+ 150   1        struct SnakeType *Snake = (struct SnakeType*)malloc(sizeof(struct SnakeType));
+ 151   1        enum DIR ReadDir = RIGHT;
+ 152   1        uint8_t tempx,tempy;
+ 153   1        
+ 154   1        while(1)
+ 155   1        {
+ 156   2          switch (GameStatus)
+ 157   2          {
+ 158   3            case  GameReady://游戏准备画面
+ 159   3              while(HandleSwitch); //按下开关前等待
+ 160   3              signal = 1;
+ 161   3              GameStatus = GameLoading;
+ 162   3              DisplaySendCommand("page 1"); //切换画面 不需要临界区
+ 163   3              /*开启第二个进程*/
+ 164   3              break;
+ 165   3            case  GameLoading:
+ 166   3              SnakeInit(Snake); //初始化蛇
+ 167   3              GetFoodRandom(Snake->body[Snake->SnakeTail].x,Snake->body[Snake->SnakeTail].y); //获取食物随机位置
+ 168   3              while (CheckFood(Snake)) food.x++;
+ 169   3              SemaphoreWait(&screen);
+ 170   3              DisplaySendCommand("fill 0,0,210,210,BLACK");
+ 171   3              DisplaySendCommand("fill 30,100,30,10,GREEN");  //画蛇
+ 172   3              DisplaySendCommand("fill 50,100,10,10,BROWN");  //画蛇
+ 173   3              DisplayFood();                                //画食物
+ 174   3              DisplayScore(Snake->SnakeSize-3);
+ 175   3              SemaphoreSignal(&screen);
+C51 COMPILER V9.52.0.0   SNAKE                                                             03/17/2019 22:08:52 PAGE 4   
+
+ 176   3              GameStatus = Gameing;
+ 177   3              break;
+ 178   3            case  Gameing:
+ 179   3              ReadDir = GetHandleDIR(Snake->Direction);
+ 180   3              if ((ReadDir==UP)&&(Snake->Direction==DOWN)) ReadDir = DOWN;
+ 181   3              if ((ReadDir==DOWN)&&(Snake->Direction==UP)) ReadDir = UP;
+ 182   3              if ((ReadDir==LEFT)&&(Snake->Direction==RIGHT)) ReadDir = RIGHT;
+ 183   3              if ((ReadDir==RIGHT)&&(Snake->Direction==LEFT)) ReadDir = LEFT;
+ 184   3              Snake->Direction = ReadDir;
+ 185   3              tempx = Snake->body[Snake->SnakeHead].x;
+ 186   3              tempy = Snake->body[Snake->SnakeHead].y;
+ 187   3              SemaphoreWait(&screen);
+ 188   3              DisplaySnakeDot(Snake->body[Snake->SnakeHead].x,Snake->body[Snake->SnakeHead].y,0); //画蛇脖子
+ 189   3              SemaphoreSignal(&screen);
+ 190   3              Snake->SnakeHead = (Snake->SnakeHead+1)%SnakeMaxSize;
+ 191   3              switch (Snake->Direction)
+ 192   3              {
+ 193   4                case UP:
+ 194   4                  Snake->body[Snake->SnakeHead].x = tempx;
+ 195   4                  Snake->body[Snake->SnakeHead].y = tempy - 1;
+ 196   4                  if (tempy == 0) Snake->body[Snake->SnakeHead].y = 20;
+ 197   4                  break;
+ 198   4                case DOWN:
+ 199   4                  Snake->body[Snake->SnakeHead].x = tempx;
+ 200   4                  Snake->body[Snake->SnakeHead].y = tempy + 1;
+ 201   4                  if (tempy == 20) Snake->body[Snake->SnakeHead].y = 0;
+ 202   4                  break;
+ 203   4                case LEFT:
+ 204   4                  Snake->body[Snake->SnakeHead].x = tempx - 1;
+ 205   4                  Snake->body[Snake->SnakeHead].y = tempy;
+ 206   4                  if (tempx == 0) Snake->body[Snake->SnakeHead].x = 20;
+ 207   4                  break;
+ 208   4                case RIGHT:
+ 209   4                  Snake->body[Snake->SnakeHead].x = tempx + 1;
+ 210   4                  Snake->body[Snake->SnakeHead].y = tempy;
+ 211   4                  if (tempx == 20) Snake->body[Snake->SnakeHead].x = 0;
+ 212   4                  break;
+ 213   4              }
+ 214   3              
+ 215   3              SemaphoreWait(&screen);
+ 216   3              DisplaySnakeDot(Snake->body[Snake->SnakeHead].x,Snake->body[Snake->SnakeHead].y,1);//画蛇头
+ 217   3              DisplaySnakeDot(Snake->body[Snake->SnakeTail].x,Snake->body[Snake->SnakeTail].y,2);//抹去蛇尾巴
+ 218   3              SemaphoreSignal(&screen);
+ 219   3              DelayBlock_Proccess(100);
+ 220   3              //判断是否吃到了实物
+ 221   3              if ((Snake->body[Snake->SnakeHead].x==food.x)&&(food.y==Snake->body[Snake->SnakeHead].y))
+ 222   3              {
+ 223   4                Snake->SnakeSize++;
+ 224   4                GetFoodRandom(Snake->body[Snake->SnakeTail].x,Snake->body[Snake->SnakeTail].y);
+ 225   4                while (CheckFood(Snake)) food.x++;
+ 226   4                SemaphoreWait(&screen);
+ 227   4                DisplayFood();  //画食物
+ 228   4                DisplayScore(Snake->SnakeSize-3);
+ 229   4                SemaphoreSignal(&screen);
+ 230   4              }else if (isEatSelf(Snake)) //判断是否吃到了自己
+ 231   3              {
+ 232   4                GameStatus = GameOver;
+ 233   4              }else{ //蛇尾元素出队
+ 234   4                Snake->SnakeTail = (Snake->SnakeTail+1)%SnakeMaxSize;
+ 235   4              }
+ 236   3              break;
+ 237   3            case  GameOver:
+C51 COMPILER V9.52.0.0   SNAKE                                                             03/17/2019 22:08:52 PAGE 5   
+
+ 238   3              while(HandleSwitch); //按下开关前等待
+ 239   3              GameStatus = GameLoading;
+ 240   3              break;
+ 241   3          }
+ 242   2        }
+ 243   1      }
+ 244          
+ 245          
+ 246          
+ 247          
+ 248          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2074    ----
+   CONSTANT SIZE    =    146    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7      20
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

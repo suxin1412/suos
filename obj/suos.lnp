@@ -1,0 +1,11 @@
+".\obj\OS_Core.obj",
+".\obj\OS_kernel.obj",
+".\obj\indicator.obj",
+".\obj\handle.obj",
+".\obj\main.obj",
+".\obj\Snake.obj",
+".\obj\Pellet.obj" 
+TO ".\obj\suos" 
+PRINT(".\suos.m51") RAMSIZE(256) 
+CODE( 0X0000-0XEFF8 )
+XDATA( 0X0000-0X0EFF )

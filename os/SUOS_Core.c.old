@@ -1,0 +1,76 @@
+#include <STC15F2K60S2.H>
+#define OLD0302
+#ifndef OLD0302
+#include <stdlib.h>
+sbit B1 = PSW^1;
+unsigned int temp_1 = 0;
+unsigned int temp_2 = 10;
+void (*taskAddr1)(void);
+void (*taskAddr2)(void);
+void *process1;
+void *process2;
+unsigned char * PCB_1;
+unsigned char * PCB_2;
+bit flag = 1;
+bit flag2 = 0;
+void task1()
+{
+	while(1) temp_1++;
+}
+void task2()
+{
+	while(1) temp_2++;
+}
+void main()
+{
+	init_mempool(0x0,30);
+	SP = 0x80;
+	B = 0x22;
+	B1 = 1;
+	AUXR &= 0x7F;		
+	TMOD &= 0xF0;		
+	TL0 = 0x00;		
+	TH0 = 0xDC;		
+	TF0 = 0;		
+	TR0 = 1;
+	ET0 = 1;
+	EA = 1;
+	process1 = task1;
+	process2 = task2;
+	task1();
+}
+void timer() interrupt 1
+{
+	
+//	unsigned char i = 0;
+//	if (flag == 1) //此时运行的是第一个进程
+//	{
+//		PCB_1 = (unsigned char *)malloc(sizeof(char)*(SP-0x80));//申请空间来存放第一个进程的栈
+//		for(;i<=(SP-0x80);i++)
+//			PCB_1[i] = *(unsigned char *)(0x80+i); //拷贝栈存入pcb
+//		if(flag2 == 0) //第二个程序还没运行过
+//		{
+//			*(unsigned int *)0x81 = *(unsigned int code*)process2;
+//		}
+//	}
+}
+#endif
+#define DATE0302
+#ifndef DATE0302
+void fxc();
+void main()
+{
+	fxc();
+	return;
+}
+
+void xdxd()
+{
+	unsigned char va = 7;
+	for (;va>0;va--)
+		P0 = va;
+}
+
+
+#endif
+

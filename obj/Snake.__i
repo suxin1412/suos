@@ -1,0 +1,1 @@
+"user\Snake.c" BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\Snake.lst) TABS (2) OBJECT(.\obj\Snake.obj)

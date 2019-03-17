@@ -1,0 +1,1 @@
+"user\main.c" BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\main.lst) TABS (2) OBJECT(.\obj\main.obj)

@@ -1,0 +1,1 @@
+"os\handle.c" BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\handle.lst) TABS (2) OBJECT(.\obj\handle.obj)

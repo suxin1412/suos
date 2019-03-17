@@ -1,0 +1,74 @@
+C51 COMPILER V9.52.0.0   HANDLE                                                            03/17/2019 22:08:20 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE HANDLE
+OBJECT MODULE PLACED IN .\obj\handle.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE os\handle.c BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\handle.ls
+                    -t) TABS(2) OBJECT(.\obj\handle.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "intrins.h"
+   3          #include <os.H>
+   4          #include <handle.h>
+   5          
+   6          void HandleInit()
+   7          {
+   8   1        P1ASF = 0X07;     //  打开ADC端口 p1.0 p1.1 p1.2
+   9   1        ADC_CONTR = 0XE0; //  ADC上电，速度最高，清除FLAG
+  10   1        CLK_DIV &=0xDF;   //  高8位放ADC_RES
+  11   1      }
+  12          
+  13          unsigned char HandleReadX()  //p1.1
+  14          {
+  15   1        ADC_CONTR = 0xE9;
+  16   1        _nop_();
+  17   1        _nop_();
+  18   1        _nop_();
+  19   1        _nop_();
+  20   1        while(!(ADC_CONTR&0x10));
+  21   1        ADC_CONTR &= 0xef;
+  22   1        return ADC_RES;
+  23   1      }
+  24          unsigned char HandleReadY() //p1.0
+  25          {
+  26   1        ADC_CONTR = 0xE8;
+  27   1        _nop_();
+  28   1        _nop_();
+  29   1        _nop_();
+  30   1        _nop_();
+  31   1        while(!(ADC_CONTR&0x10));
+  32   1        ADC_CONTR &= 0xef;
+  33   1        return ADC_RES;
+  34   1      }
+  35          //unsigned char Random(uint8_t base) //p1.2
+  36          //{
+  37          //  uint8_t Rand;
+  38          //  ADC_CONTR = 0xEA;
+  39          //  _nop_();
+  40          //  _nop_();
+  41          //  _nop_();
+  42          //  _nop_();
+  43          //  while(!(ADC_CONTR&0x10));
+  44          //  ADC_CONTR &= 0xef;
+  45          //  Rand = (ADC_RESL&0x03)+(ADC_RES<<2);
+  46          //  Rand %= base;
+  47          //  return Rand;
+  48          //}
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     46    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+C51 COMPILER V9.52.0.0   HANDLE                                                            03/17/2019 22:08:20 PAGE 2   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

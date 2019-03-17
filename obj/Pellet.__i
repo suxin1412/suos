@@ -1,0 +1,1 @@
+"user\Pellet.c" BROWSE INCDIR(.\os;.\user) DEBUG OBJECTEXTEND PRINT(.\Pellet.lst) TABS (2) OBJECT(.\obj\Pellet.obj)
